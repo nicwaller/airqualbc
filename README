@@ -1,9 +1,16 @@
-One way to scrape ASP applications,
-but it didn't work for us unfortunately.
-http://www.mishainthecloud.com/2009/12/screen-scraping-aspnet-application-in.html
+Now we're getting somewhere with data scraping!
+
+get_air_qual.php
+- This grabs the most recent measurements for any one station
+
+test_big_grab.php
+- This grabs one day of historical data for any station
 
 current atmospheric data from Omineca region
 http://envistaweb.env.gov.bc.ca/DynamicTable.aspx?G_ID=152
+
+most recent readings for an individual station ID
+http://envistaweb.env.gov.bc.ca/StationInfo3.aspx?ST_ID=107
 
 sites that have SO2 readings:
   - Pine River Gas Plant_60
