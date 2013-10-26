@@ -122,32 +122,54 @@ function parse_station_data( $content ) {
 	return $realdata;
 }
 
-$date = DateTime::createFromFormat('Y-m-d', '2013-10-24');
-$station_id = 13; // pg plaza 400
-$filename = 'st_'. $station_id .'_'. $date->format('Y-m-d') .'.html';
-if (!file_exists($filename)) {
-	$html_response = fetch_station_data( 13, $date );
-	file_put_contents( $filename, $html_response );
+function download_latest_for_station( $station_id ) {
+	global $db;
+	//$date = DateTime::createFromFormat('Y-m-d', '2013-10-24');
+	$date = new DateTime;
+	// the form is silly and we need to provide the day before
+	$date->sub(new DateInterval('P1D'));
 
-	$results = parse_station_data( file_get_contents( $filename ) );
-	//print_r( $results );
+	$filename = 'st_'. $station_id .'_'. $date->format('Y-m-d') .'.html';
+	if (!file_exists($filename)) {
+		$html_response = fetch_station_data( $station_id, $date );
+		file_put_contents( $filename, $html_response );
 	
-	$sql = "INSERT INTO sample (station_id, sensor_name, time, value) VALUES
-		(:station_id, :sensor_name, :time, :value);";
-	$stmt = $db->prepare($sql);
-	foreach ($results as $sensor_name => $samples) {
-		foreach ($samples as $time => $value) {		
-			$stmt->bindParam(':station_id',  $station_id);
-			$stmt->bindParam(':sensor_name', $sensor_name);
-			$stmt->bindParam(':time',        $time);
-			$stmt->bindParam(':value',       $value);
-			$stmt->execute();
+		$results = parse_station_data( file_get_contents( $filename ) );
+		//print_r( $results );
+		
+		$sql = "INSERT INTO sample (station_id, sensor_name, time, value) VALUES
+			(:station_id, :sensor_name, :time, :value);";
+		$stmt = $db->prepare($sql);
+		foreach ($results as $sensor_name => $samples) {
+			foreach ($samples as $time => $value) {		
+				$stmt->bindParam(':station_id',  $station_id);
+				$stmt->bindParam(':sensor_name', $sensor_name);
+				$stmt->bindParam(':time',        $time);
+				$stmt->bindParam(':value',       $value);
+				$stmt->execute();
+			}
 		}
 	}
 }
 
-$sql = "SELECT station_id, sensor_name, time
-	FROM sample;";
+
+
+$sql = "SELECT station_id FROM station;";
+$stmt = $db->prepare($sql);
+$stmt->execute();
+$stations = array();
+while ($row = $stmt->fetch()) {
+	$stations[] = $row['station_id'];
+}
+
+//foreach (array(52, 107, 110, 132, 133, 444, 134, 139, 140, 210, 13, 176, 179, 212, 440) as $station) {
+foreach ($stations as $station) {
+	download_latest_for_station( $station );
+}
+
+$sql = "SELECT station_id, sensor_name, time, value
+	FROM sample
+	WHERE sensor_name='FP10' and time like '2013-10-24%';";
 $stmt = $db->prepare($sql);
 $stmt->execute();
 while ($row = $stmt->fetch()) {
