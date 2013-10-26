@@ -5,7 +5,12 @@ ini_set("display_errors", 1);
 require('scraper.php');
 require('simple_html_dom.php');
 
-function fetch_station_data( $station_id = 107 ) {
+date_default_timezone_set('America/Vancouver');
+
+require('db.php');
+
+// date parameter must be of type DateTime
+function fetch_station_data( $station_id, $date ) {
 
 	// PART 1: Use the form to request measurement data
 	// ------------------------------------------------
@@ -27,7 +32,7 @@ function fetch_station_data( $station_id = 107 ) {
 	$data['lstMonitorsn2CheckBox'] = 'on';
 	$data['lstMonitorsn3CheckBox'] = 'on';
 	$data['lstMonitorsn4CheckBox'] = 'on';
-	$data['BasicDatePicker1$TextBox'] = '10/20/2013';
+	$data['BasicDatePicker1$TextBox'] = $date->format('m/d/Y');
 	$data['ddlAvgType'] = 'Mean';
 	$data['ddlTimeBase'] = '60';
 	//$data['txtErrorMonitor'] = 'Please select at least 1 monitor';
@@ -49,8 +54,6 @@ function parse_station_data( $content ) {
 		'Data[%]',
 		'STD'
 	);
-
-	date_default_timezone_set('America/Vancouver');
 
 	$body = str_get_html($content);
 	$table = $body->find('table#C1WebGrid1', 0);
@@ -87,12 +90,13 @@ function parse_station_data( $content ) {
 		$row_time_str = $cells[0]->plaintext;
 		// Why do they do this? 24:00 AM isn't a real time!
 		if (strpos($row_time_str, '24:00') !== FALSE) {
-			$parts = date_parse($row_time_str);
+			$parts = date_parse_from_format('m/d/Y g:i A', $row_time_str);
 			$year = $parts['year'];
 			$month = $parts['month'];
 			$day = $parts['day'];
 			$row_time = strtotime( "$year-$month-$day 11:00 PM" ) + 3600;
 		} else {
+			// strtotime() [correctly] assumes m/d/y format when slashes are used
 			$row_time = strtotime( $row_time_str );
 		}
 		if ($row_time === FALSE) {
@@ -109,6 +113,7 @@ function parse_station_data( $content ) {
 				$cell_value = floatval($cell->plaintext);
 				$realdata[$column_name][$row_time_label] = $cell_value;
 			} else {
+				$col_id++;
 				continue;
 			}
 			$col_id++;
@@ -117,9 +122,34 @@ function parse_station_data( $content ) {
 	return $realdata;
 }
 
-$filename = 'st_107_2013_10_20.html';
-//$html_response = fetch_station_data();
-//file_put_contents( $filename, $html_response );
+$date = DateTime::createFromFormat('Y-m-d', '2013-10-24');
+$station_id = 13; // pg plaza 400
+$filename = 'st_'. $station_id .'_'. $date->format('Y-m-d') .'.html';
+if (!file_exists($filename)) {
+	$html_response = fetch_station_data( 13, $date );
+	file_put_contents( $filename, $html_response );
 
-$results = parse_station_data( file_get_contents( $filename ) );
-print_r( $results );
+	$results = parse_station_data( file_get_contents( $filename ) );
+	//print_r( $results );
+	
+	$sql = "INSERT INTO sample (station_id, sensor_name, time, value) VALUES
+		(:station_id, :sensor_name, :time, :value);";
+	$stmt = $db->prepare($sql);
+	foreach ($results as $sensor_name => $samples) {
+		foreach ($samples as $time => $value) {		
+			$stmt->bindParam(':station_id',  $station_id);
+			$stmt->bindParam(':sensor_name', $sensor_name);
+			$stmt->bindParam(':time',        $time);
+			$stmt->bindParam(':value',       $value);
+			$stmt->execute();
+		}
+	}
+}
+
+$sql = "SELECT station_id, sensor_name, time
+	FROM sample;";
+$stmt = $db->prepare($sql);
+$stmt->execute();
+while ($row = $stmt->fetch()) {
+	print_r($row);
+}
