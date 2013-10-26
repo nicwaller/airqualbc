@@ -55,8 +55,15 @@ function parse_station_data( $content ) {
 		'STD'
 	);
 
+	if (strpos('OutOfMemoryException', $content) !== FALSE) {
+		die('Oops, crashed the server?');
+	}
+
 	$body = str_get_html($content);
 	$table = $body->find('table#C1WebGrid1', 0);
+	if ($table == null) {
+		die("Failed to find table");
+	}
 	$realdata = array();
 	$row_id = 0;
 	$rows = $table->find('tr');
@@ -134,6 +141,7 @@ function download_latest_for_station( $station_id ) {
 		$html_response = fetch_station_data( $station_id, $date );
 		file_put_contents( $filename, $html_response );
 	
+		echo "Reading file $filename\n";
 		$results = parse_station_data( file_get_contents( $filename ) );
 		//print_r( $results );
 		
@@ -161,6 +169,9 @@ $stations = array();
 while ($row = $stmt->fetch()) {
 	$stations[] = $row['station_id'];
 }
+
+// this site is glitchy right now
+unset($stations[70]);
 
 //foreach (array(52, 107, 110, 132, 133, 444, 134, 139, 140, 210, 13, 176, 179, 212, 440) as $station) {
 foreach ($stations as $station) {
