@@ -33,7 +33,7 @@ function get_sensors_with_locations( $sensor_name, $date ) {
 	$sql = "SELECT station.station_id, station.latitude, station.longitude, sample.value, sample.time
 	        FROM sample
 		INNER JOIN station ON sample.station_id = station.station_id
-		WHERE sensor_name = :sensor_name AND time LIKE '2013-10%';";
+		WHERE sensor_name = :sensor_name AND time LIKE :date;";
 	$stmt = $db->prepare($sql);
 	$stmt->bindParam( ':sensor_name', $sensor_name );
 	$stmt->bindParam( ':date', $date_prefix );
