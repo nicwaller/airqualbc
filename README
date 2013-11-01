@@ -1,28 +1,16 @@
-Now we're getting somewhere with data scraping!
+functions_scraping.php
+-----------------------------------
+  - fetch_station_location
+  - fetch_missing_station_locations
+  - fetch_station_htmldata
+  - parse_station_htmldata
+  - download_latest_for_station
+  - fetch_station_list
+  - parse_station_list
+  - save_station_list
+  - fetch_and_save_stations
 
-get_air_qual.php
-- This grabs the most recent measurements for any one station
-
-test_big_grab.php
-- This grabs one day of historical data for any station
-
-current atmospheric data from Omineca region
-http://envistaweb.env.gov.bc.ca/DynamicTable.aspx?G_ID=152
-
-most recent readings for an individual station ID
-http://envistaweb.env.gov.bc.ca/StationInfo3.aspx?ST_ID=107
-
-sites that have SO2 readings:
-  - Pine River Gas Plant_60
-  - Pine River Hasler_60
-  - Prince George CBC Transmitter
-  - Prince George Gladstone School
-  - Prince George Jail
-  - Prince George Marsulex Acid Plant
-  - Prince George Plaza 400
-  - Taylor South Hill_60
-  - Taylor Townsite_60
-
-future plans:
+Future Plans
+-----------------------------------
 Also work with radiation data:
   http://api.safecast.org
