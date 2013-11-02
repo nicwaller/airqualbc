@@ -47,32 +47,10 @@ function initialize( sensor )
 		});	
 	}
 
-	function goOverlay( data ) {
-		// station_id, latitude, longitude, value, time
-
-		overlay = new google.maps.OverlayView();
-		overlay.onAdd = function() {
-			var layer = d3.select(this.getPanes().overlayLayer).append("div");
-			overlay.draw = function() {
-				var marker = layer.selectAll("svg")
-					.data([1,2,3])
-					.enter().append("svg:svg");
-
-				marker.append("svg:circle")
-					.attr("r", 6.5)
-					.attr("cx", 14.5)
-					.attr("cy", 14.5);
-			};
-		}
-		overlay.setMap(map);
-	}
-
 	// Download data for this sensor, then add data into the map
 	$.ajax( "api/sensor/" + sensor )
-		.done( goOverlay )
-//		.done( goHeatmap )
-//		.done( goMarkers )
-		;
+		.done( goHeatmap )
+		.done( goMarkers );
 }
 
 $.ajax( "api/sensor" )

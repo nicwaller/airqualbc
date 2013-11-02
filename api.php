@@ -15,7 +15,7 @@ switch ( $_GET['resource'] ) {
 			$id = $_GET['id'];
 
 			// TODO remove this
-			$day = '2013-10-25';
+			$day = '2013-11-01';
 
 			//$day = date('Y-m-d');
 			print_r( json_encode( get_sensors_with_locations( $id, $day ) ) );
