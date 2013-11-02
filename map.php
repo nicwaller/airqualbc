@@ -1,54 +1,79 @@
 <!DOCTYPE html>
 <html>
 <head>
+<script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
 <script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
 <script src="http://maps.googleapis.com/maps/api/js?key=AIzaSyB9vnyKt02oej-h9VgkI-NPfDy1IfF9cwI&sensor=false&libraries=visualization">
 </script>
 
 <script>
+var svg, overlay;
+
 function initialize( sensor )
 {
-var mapProp = {
-  center:new google.maps.LatLng(53.9000, -122.7667),
-  zoom:6,
-  overviewMapControl: true,
-  dissipating: false,
-  mapTypeId:google.maps.MapTypeId.TERRAIN
-  };
-var map=new google.maps.Map(document.getElementById("googleMap"),mapProp);
-
-var qu = "api/sensor/" + sensor;
-$.ajax( qu )
-	.done(function( msg ) {
+	var mapProp = {
+		center:new google.maps.LatLng(53.9000, -122.7667),
+		zoom:6,
+		minZoom: 3,
+		overviewMapControl: true,
+		dissipating: false,
+		mapTypeId:google.maps.MapTypeId.TERRAIN
+	};
+	var map=new google.maps.Map(document.getElementById("googleMap"),mapProp);
+	
+	function goHeatmap( data ) {
 		var heatmapData = [];
-		$.each(msg, function(index, value) {
-			var lat = value.latitude;
-			var lng = value.longitude;
+		$.each(data, function(index, v) {
 			heatmapData.push({
-				location: new google.maps.LatLng(lat, lng),
+				location: new google.maps.LatLng(v.latitude, v.longitude),
 				weight: 1.0,
-			});
-			new google.maps.Marker({
-				position: new google.maps.LatLng(lat, lng),
-				map: map,
-				title: "Station# " + value.station_id + " at time " + value.time,
 			});
 		});
 		var heatmap = new google.maps.visualization.HeatmapLayer({
 			data: heatmapData,
 			radius: 100,
-//			maxIntensity: 50.0
+			//maxIntensity: 50.0
 		});
 		heatmap.setMap(map);
-	});
+	}
 
+	function goMarkers( data ) {
+		$.each(data, function(index, v) {
+			new google.maps.Marker({
+				position: new google.maps.LatLng(v.latitude, v.longitude),
+				map: map,
+				title: "Station# " + v.station_id + " at time " + v.time,
+			});
+		});	
+	}
+
+	function goOverlay( data ) {
+		// station_id, latitude, longitude, value, time
+
+		overlay = new google.maps.OverlayView();
+		overlay.onAdd = function() {
+			var layer = d3.select(this.getPanes().overlayLayer).append("div");
+			overlay.draw = function() {
+				var marker = layer.selectAll("svg")
+					.data([1,2,3])
+					.enter().append("svg:svg");
+
+				marker.append("svg:circle")
+					.attr("r", 6.5)
+					.attr("cx", 14.5)
+					.attr("cy", 14.5);
+			};
+		}
+		overlay.setMap(map);
+	}
+
+	// Download data for this sensor, then add data into the map
+	$.ajax( "api/sensor/" + sensor )
+		.done( goOverlay )
+//		.done( goHeatmap )
+//		.done( goMarkers )
+		;
 }
-
-
-$.ajax( "api/sensor/FP10" )
-	.done(function( msg ) {
-		//console.log( msg );
-	});
 
 $.ajax( "api/sensor" )
 	.done(function( msg ) {
@@ -67,6 +92,8 @@ $.ajax( "api/sensor" )
 
 
 <body>
+
+<div id="test"></div>
 
 <select name="sensor" id="sensor">
 </select>

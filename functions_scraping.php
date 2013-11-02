@@ -30,11 +30,7 @@ function fetch_station_location( $id ) {
 	return array( 'lat' => $latt, 'lng' => $longt );
 }
 
-/**
- * int limit: maximum number to fetch during this session.
- *            defaults to -1 (unlimited)
- */
-function fetch_missing_station_locations( $limit = 0 ) {
+function fetch_missing_station_locations() {
 	global $db;
 
 	// Find stations that don't have a location yet.
@@ -45,7 +41,6 @@ function fetch_missing_station_locations( $limit = 0 ) {
 	while ($row = $stmt->fetch()) {
 		$ids[] = $row['station_id'];
 	}
-	$ids = array_slice( $ids, 0, $limit );
 	
 	$sql = "UPDATE station
 		SET latitude = :lat, longitude = :lng
@@ -66,6 +61,8 @@ function fetch_missing_station_locations( $limit = 0 ) {
 
 // date parameter must be of type DateTime
 function fetch_station_htmldata( $station_id, $date ) {
+	global $data_domain;
+
 	$url = 'http://'. $data_domain .'/frmStationReport.aspx';
 
 	$data = array();
@@ -182,15 +179,21 @@ function parse_station_htmldata( $content ) {
 	return $realdata;
 }
 
+// return true if data was actually retreived
 function download_latest_for_station( $station_id ) {
 	global $db;
+	global $raw_data_dir;
+
 	//$date = DateTime::createFromFormat('Y-m-d', '2013-10-24');
 	$date = new DateTime;
 	// the form is silly and we need to provide the day before
 	$date->sub(new DateInterval('P1D'));
 
 	$filename = $raw_data_dir . '/st_'. $station_id .'_'. $date->format('Y-m-d') .'.html';
-	if (!file_exists($filename)) {
+	if (file_exists($filename)) {
+		//echo "File already exists: $filename\n";
+		return false;
+	} else {
 		echo "Fetching station data...\n";
 		$html_response = fetch_station_htmldata( $station_id, $date );
 		file_put_contents( $filename, $html_response );
@@ -213,42 +216,41 @@ function download_latest_for_station( $station_id ) {
 			}
 		}
 	}
+
+	return true;
 }
 
-
-
-$sql = "SELECT station_id FROM station;";
-$stmt = $db->prepare($sql);
-$stmt->execute();
-$stations = array();
-while ($row = $stmt->fetch()) {
-	$stations[] = $row['station_id'];
-}
-
-// this site is glitchy right now
-unset($stations[70]);
-
-//foreach (array(52, 107, 110, 132, 133, 444, 134, 139, 140, 210, 13, 176, 179, 212, 440) as $station) {
-$downloaded = 0;
-foreach ($stations as $station) {
-	print_r("Downloading $downloaded/?\n");
-	download_latest_for_station( $station );
-	$downloaded++;
-
-	echo "Stalling, to be nice...\n";
-	sleep(2);
-	if ($downloaded >= 2) {
-		break;
+function download_latest( $limit = 3 ) {
+	global $db;
+	$sql = "SELECT station_id FROM station;";
+	$stmt = $db->prepare($sql);
+	$stmt->execute();
+	$stations = array();
+	while ($row = $stmt->fetch()) {
+		$stations[] = $row['station_id'];
 	}
-}
 
-$sql = "SELECT station_id, sensor_name, time, value
-	FROM sample
-	WHERE sensor_name='FP10' and time like '2013-10-30%';";
-$stmt = $db->prepare($sql);
-$stmt->execute();
-while ($row = $stmt->fetch()) {
-	print_r($row);
+	//foreach (array(52, 107, 110, 132, 133, 444, 134, 139, 140, 210, 13, 176, 179, 212, 440) as $station) {
+	$downloaded = 0;
+	foreach ($stations as $station) {
+		echo "Station [$downloaded/$limit] = $station\n";
+		echo "Downloading... ";
+		$success = download_latest_for_station( $station );
+		if ($success) {
+			$downloaded++;
+			echo "Waiting 1 second just to be nice...";
+			sleep(2);
+			echo "Done.\n";
+		} else {
+			echo "(Skipping)";
+		}
+	
+		echo "Done.\n";
+
+		if ($downloaded == $limit) {
+			break;
+		}
+	}
 }
 
 // date parameter must be of type DateTime
