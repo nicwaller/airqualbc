@@ -43,30 +43,39 @@ function initialize( sensor )
 			new google.maps.Marker({
 				position: new google.maps.LatLng(v.latitude, v.longitude),
 				map: map,
-				title: "Station# " + v.station_id + " at time " + v.time + ". reading= " + v.value,
+				title: "Station# " + v.station_id + " at time " + v.time + ". "+ sensor +" reading= " + v.value,
 			});
 		});	
 	}
 
 	var gradient = new Rainbow();
-	gradient.setSpectrum('#FFFFFF', '#FF0000');
+	gradient.setSpectrum('#FFFFFF', '#FFFF00', '#FFA500', '#FF0000');
 	// Safety values taken from World Heath Organization
 	// http://www.who.int/mediacentre/factsheets/fs313/en/
 	switch (sensor) {
 		case 'PM10': // large particulate
+			// Same units for Envistaweb and WHO safety threshold
 			gradient.setNumberRange(0, 50); // max for 24-hour period
 			break;
 		case 'PM25': // small particulate
+			// Same units for Envistaweb and WHO safety threshold
 			gradient.setNumberRange(0, 25); // max for 24-hour period
 			break;
 		case 'O3': // ozone
-			gradient.setNumberRange(0, 100); // 8 hour mean
+			// WHO threshold 100 ug/m^3
+			// = 0.051 ppm = 51 ppb
+			gradient.setNumberRange(0, 51); // 8 hour mean
 			break;
 		case 'NO2': // nitrogen dioxide 
-			gradient.setNumberRange(0, 40); // 8 hour mean
+			// WHO threshold 40ug/m^3
+			// = 0.040 mg/m^3
+			// = 0.021 ppm
+			// = 21 ppb (Envistaweb reports ppb)
+			gradient.setNumberRange(0, 21); // 8 hour mean
 			break;
 		case 'SO2': // sulfur dioxide 
-			gradient.setNumberRange(0, 20); // 24 hour mean
+			// WHO threshold 20ug/m^3 = 0.007 ppm = 7.0 ppb
+			gradient.setNumberRange(0, 7); // 24 hour mean
 			break;
 		default:
 			gradient.setNumberRange(0, 100);

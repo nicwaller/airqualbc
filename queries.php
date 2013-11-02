@@ -4,6 +4,14 @@ ini_set("display_errors", 1);
 
 require('db.php');
 
+function get_stations() {
+	global $db;
+	$sql = "SELECT station_id, station_name, latitude, longitude FROM station;";
+	$stmt = $db->prepare($sql);
+	$stmt->execute();
+        return $stmt->fetchAll();
+}
+
 /**
  * get_sensor_daily( 'FP10', '2013-10-30' );
  **/
@@ -47,4 +55,12 @@ function get_sensors_with_locations( $sensor_name, $date ) {
 		//echo "{location: new google.maps.LatLng($lat, $lng), weight: $val},";
 	}
 	return $results;
+}
+
+function get_sensor_names() {
+	global $db;
+	$sql = "SELECT DISTINCT sensor_name FROM sample;";
+	$stmt = $db->prepare($sql);
+	$stmt->execute();
+	return $stmt->fetchAll(PDO::FETCH_COLUMN, 0);
 }

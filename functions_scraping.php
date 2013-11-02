@@ -112,7 +112,8 @@ function parse_station_htmldata( $content ) {
 	$body = str_get_html($content);
 	$table = $body->find('table#C1WebGrid1', 0);
 	if ($table == null) {
-		die("Failed to find table");
+		echo "Failed to find table";
+		return false;
 	}
 	$realdata = array();
 	$row_id = 0;
