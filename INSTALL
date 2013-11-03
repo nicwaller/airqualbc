@@ -1,4 +1,36 @@
-The installation process is partially automated with bash and Puppet.
-
+#!/bin/bash
 # su root
-# source <(curl -s https://gist.github.com/nicwaller/7285802/raw)
+# source <(curl -s https://raw.github.com/nicwaller/airqualbc/master/INSTALL)
+
+rpm -ivh http://yum.puppetlabs.com/el/6/products/i386/puppetlabs-release-6-7.noarch.rpm
+yum -y install git puppet puppet-server
+
+service puppetmaster start
+
+if [ ! -d "/root/air_complete" ]; then
+  git clone https://github.com/nicwaller/pghacks.git ~/air_complete/
+else
+  cd /root/air_complete/; git pull
+fi
+rsync -pr ~/air_complete/air_quality/puppet/ /etc/puppet/modules/air
+echo "node default { include air }" > /etc/puppet/manifests/site.pp
+
+if [ ! -d "/etc/puppet/modules/mysql" ]; then
+  puppet module install puppetlabs/mysql
+fi
+if [ ! -d "/etc/puppet/modules/apache" ]; then
+puppet module install puppetlabs/apache
+fi
+if [ ! -d "/etc/puppet/modules/php" ]; then
+puppet module install thias/php
+fi
+puppet agent --test
+
+rsync -pr ~/air_complete/air_quality/ /var/www/air/
+if [ ! -d "/var/www/air/rawdata" ]; then
+  mkdir /var/www/air/rawdata
+fi
+chgrp -R apache /var/www/air/rawdata
+chmod -R g+rwx /var/www/air/rawdata
+
+php /var/www/air/install.php
