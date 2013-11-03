@@ -1,4 +1,4 @@
+# PHP Slim requires this for clean URLs
 RewriteEngine On
-#RewriteRule ^api/ api.php
-RewriteRule ^api/([A-z0-9]+)/([A-z0-9]+) api.php?resource=$1&id=$2
-RewriteRule ^api/([A-z0-9]+) api.php?resource=$1
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteRule ^ index.php [QSA,L]
