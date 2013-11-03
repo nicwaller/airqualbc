@@ -8,11 +8,11 @@ yum -y install git puppet puppet-server
 service puppetmaster start
 
 if [ ! -d "/root/air_complete" ]; then
-  git clone https://github.com/nicwaller/pghacks.git ~/air_complete/
+  git clone https://github.com/nicwaller/airqualbc ~/airqualbc/
 else
-  cd /root/air_complete/; git pull
+  cd /root/airqualbc/; git pull
 fi
-rsync -pr ~/air_complete/air_quality/puppet/ /etc/puppet/modules/air
+rsync -pr ~/airqualbc/puppet/ /etc/puppet/modules/air
 echo "node default { include air }" > /etc/puppet/manifests/site.pp
 
 if [ ! -d "/etc/puppet/modules/mysql" ]; then
@@ -26,7 +26,7 @@ puppet module install thias/php
 fi
 puppet agent --test
 
-rsync -pr ~/air_complete/air_quality/ /var/www/air/
+rsync -pr ~/airqualbc/ /var/www/air/
 if [ ! -d "/var/www/air/rawdata" ]; then
   mkdir /var/www/air/rawdata
 fi
