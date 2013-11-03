@@ -1,4 +1,7 @@
 <?php
+error_reporting(E_ALL);
+ini_set("display_errors", 1);
+
 require('db.php');
 require('queries.php');
 require 'lib/Slim/Slim.php';
@@ -26,9 +29,17 @@ $app->group('/api', function() use ($app) {
 	});
 	
 	$app->get('/monitor/:id', function($id) {
-		print_r( json_encode( get_monitors_with_locations( $id, '2013-11-01 14:00' ) ) );
+		print_r( json_encode( get_monitors_with_locations( $id, '2013-11-01 14:00:00' ) ) );
 	});
 
+	$app->get('/sample/by-date/:dt', function($dt) {
+		$t1 = strtotime( $dt );
+		print_r( json_encode( get_sample_at( $t1 ) ) );
+	});
+
+	$app->notFound( function() {
+		print_r( json_encode( array('error'=>'No matching API method') ) );
+	});
 });
 
 $app->run();

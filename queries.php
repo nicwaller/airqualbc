@@ -41,7 +41,7 @@ function get_monitors_with_locations( $monitor_name, $date ) {
 	$sql = "SELECT station.station_id, station.latitude, station.longitude, sample.value, sample.time
 	        FROM sample
 		INNER JOIN station ON sample.station_id = station.station_id
-		WHERE monitor_name = :monitor_name AND time LIKE :date;";
+		WHERE monitor_name = :monitor_name AND time = :date;";
 	$stmt = $db->prepare($sql);
 	$stmt->bindParam( ':monitor_name', $monitor_name );
 	$stmt->bindParam( ':date', $date_prefix );
@@ -64,3 +64,13 @@ function get_monitor_names() {
 	$stmt->execute();
 	return $stmt->fetchAll(PDO::FETCH_COLUMN, 0);
 }
+
+/*
+function get_sample_at( $time ) {
+	global $db;
+	$sql = "SELECT station.station_id, station.latitude, station.longitude, sample.value, sample.time
+		FROM sample
+		INNER JOIN station ON sample.station_id = station.station_id
+		WHERE sample.time
+}
+*/
