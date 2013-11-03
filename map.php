@@ -21,6 +21,9 @@ function initialize( sensor )
 		mapTypeId:google.maps.MapTypeId.TERRAIN
 	};
 	var map=new google.maps.Map(document.getElementById("googleMap"),mapProp);
+
+	map.controls[google.maps.ControlPosition.RIGHT_CENTER].push(document.getElementById("legend"));
+	map.controls[google.maps.ControlPosition.RIGHT_TOP].push(document.getElementById("sensor_control"));
 	
 	function goHeatmap( data ) {
 		var heatmapData = [];
@@ -128,10 +131,23 @@ $.ajax( "api/sensor" )
 
 <div id="test"></div>
 
-<select name="sensor" id="sensor">
-</select>
+<div id="legend" width="50" height="400">
+	<svg xmlns="http://www.w3.org/2000/svg" version="1.1" height="400" width="50">
+		<linearGradient id="G1" x1="0%" y1="100%" x2="0%" y2="0%">
+			<stop offset="0%" style="stop-color:rgb(255,255,255); stop-opacity:1" />
+			<stop offset="33%" style="stop-color:rgb(255,255,0); stop-opacity:1" />
+			<stop offset="66%" style="stop-color:rgb(255,165,0); stop-opacity:1" />
+			<stop offset="100%" style="stop-color:rgb(255,0,0); stop-opacity:1" />
+		</linearGradient>
+		<rect x="0" y="0" width="50" height="400" fill="url(#G1)" />
+	</svg>
+</div>
 
-<div id="googleMap" style="position:absolute;left:0;top:10%;width:100%;height:90%;"></div>
+<div id="sensor_control" width="50" height="50">
+	<select name="sensor" id="sensor"></select>
+</div>
+
+<div id="googleMap" style="position:absolute;left:0;top:0%;width:100%;height:100%;"></div>
 
 </body>
 </html>
