@@ -4,7 +4,7 @@
 <script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
 <script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
 <script src="http://maps.googleapis.com/maps/api/js?key=AIzaSyB9vnyKt02oej-h9VgkI-NPfDy1IfF9cwI&sensor=false&libraries=visualization"></script>
-<script src="http://10.0.0.13/pghacks/air_quality/lib/rainbowvis.js"></script>
+<script src="/lib/rainbowvis.js"></script>
 </script>
 
 <script>
