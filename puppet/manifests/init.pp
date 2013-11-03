@@ -42,7 +42,10 @@ class air {
 	include apache::mod::php
 
 	file { '/var/www/air':
-		ensure => directory,
+		ensure  => directory,
+	} -> file { '/var/www/air/config.php':
+		ensure  => 'file',
+		content => template('air/config.php.erb'),
 	} -> apache::vhost { $::fqdn:
 		default_vhost => true,
 		port => '80',
