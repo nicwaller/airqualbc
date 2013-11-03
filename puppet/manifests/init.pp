@@ -41,7 +41,9 @@ class air {
 	}
 	include apache::mod::php
 
-	file { '/var/www/air':
+	file { '/var/www':
+		ensure  => directory,
+	} -> file { '/var/www/air':
 		ensure  => directory,
 	} -> file { '/var/www/air/config.php':
 		ensure  => 'file',
