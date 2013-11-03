@@ -28,7 +28,7 @@ function initialize()
 	map=new google.maps.Map(document.getElementById("googleMap"),mapProp);
 
 	map.controls[google.maps.ControlPosition.RIGHT_CENTER].push(document.getElementById("legend"));
-	map.controls[google.maps.ControlPosition.RIGHT_TOP].push(document.getElementById("sensor_control"));
+	map.controls[google.maps.ControlPosition.TOP_CENTER].push(document.getElementById("sensor_control"));
 }
 
 function showSensor( sensor ) {
@@ -161,7 +161,7 @@ $.ajax( "api/sensor" )
 </div>
 
 <div id="sensor_control" width="50" height="50">
-	<select name="sensor" id="sensor"></select>
+	<select name="sensor" id="sensor" style="height: 40px;"></select>
 </div>
 
 <div id="googleMap" style="position:absolute;left:0;top:0%;width:100%;height:100%;"></div>
