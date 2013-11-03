@@ -28,10 +28,10 @@ function initialize()
 	map=new google.maps.Map(document.getElementById("googleMap"),mapProp);
 
 	map.controls[google.maps.ControlPosition.RIGHT_CENTER].push(document.getElementById("legend"));
-	map.controls[google.maps.ControlPosition.TOP_CENTER].push(document.getElementById("sensor_control"));
+	map.controls[google.maps.ControlPosition.TOP_CENTER].push(document.getElementById("monitor_control"));
 }
 
-function showSensor( sensor ) {
+function showMonitor( monitor ) {
 	while (all_overlay[0]) {
 		all_overlay.pop().setMap(null);
 	}
@@ -61,7 +61,7 @@ function showSensor( sensor ) {
 			all_markers.push(new google.maps.Marker({
 				position: new google.maps.LatLng(v.latitude, v.longitude),
 				map: map,
-				title: "Station# " + v.station_id + " at time " + v.time + ". "+ sensor +" reading= " + v.value,
+				title: "Station# " + v.station_id + " at time " + v.time + ". "+ monitor +" reading= " + v.value,
 			}));
 		});	
 	}
@@ -70,7 +70,7 @@ function showSensor( sensor ) {
 	gradient.setSpectrum('#FFFFFF', '#FFFF00', '#FFA500', '#FF0000');
 	// Safety values taken from World Heath Organization
 	// http://www.who.int/mediacentre/factsheets/fs313/en/
-	switch (sensor) {
+	switch (monitor) {
 		case 'PM10': // large particulate
 			// Same units for Envistaweb and WHO safety threshold
 			gradient.setNumberRange(0, 50); // max for 24-hour period
@@ -117,8 +117,8 @@ function showSensor( sensor ) {
 	}
 
 
-	// Download data for this sensor, then add data into the map
-	$.ajax( "api/sensor/" + sensor )
+	// Download data for this monitor, then add data into the map
+	$.ajax( "api/monitor/" + monitor )
 		.done( goCircles )
 //		.done( goHeatmap )
 		.done( goMarkers );
@@ -126,17 +126,17 @@ function showSensor( sensor ) {
 
 $( document ).ready(initialize);
 
-$.ajax( "api/sensor" )
+$.ajax( "api/monitor" )
 	.done(function( msg ) {
-		var options = $("#sensor");
+		var options = $("#monitor");
 		$.each(msg, function(index, value) {
 			if ($.inArray(value, ['PM10', 'PM25', 'O3', 'NO2', 'SO2']) != -1) {
 				options.append( $("<option />").val(this).text(this) );
 			}
 		});
 		var handler = function() {
-			var sensor = $( "#sensor option:selected").text();
-			showSensor( sensor );
+			var monitor = $( "#monitor option:selected").text();
+			showMonitor( monitor );
 		};
 		options.change(handler).keypress(handler).ready(handler);
 	});
@@ -160,8 +160,8 @@ $.ajax( "api/sensor" )
 	</svg>
 </div>
 
-<div id="sensor_control" width="50" height="50">
-	<select name="sensor" id="sensor" style="height: 40px;"></select>
+<div id="monitor_control" width="50" height="50">
+	<select name="monitor" id="monitor" style="height: 40px;"></select>
 </div>
 
 <div id="googleMap" style="position:absolute;left:0;top:0%;width:100%;height:100%;"></div>

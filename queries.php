@@ -13,16 +13,16 @@ function get_stations() {
 }
 
 /**
- * get_sensor_daily( 'FP10', '2013-10-30' );
+ * get_monitor_daily( 'FP10', '2013-10-30' );
  **/
-function get_sensor_daily( $sensor_name = 'FP10', $date ) {
+function get_monitor_daily( $monitor_name = 'FP10', $date ) {
 	global $db;
 	$date_prefix = $date . "%";
-	$sql = "SELECT station_id, sensor_name, time, value
+	$sql = "SELECT station_id, monitor_name, time, value
 		FROM sample
-		WHERE sensor_name = :sensor_name and time like :date;";
+		WHERE monitor_name = :monitor_name and time like :date;";
 	$stmt = $db->prepare($sql);
-	$stmt->bindParam( ':sensor_name', $sensor_name );
+	$stmt->bindParam( ':monitor_name', $monitor_name );
 	$stmt->bindParam( ':date', $date_prefix );
 	$stmt->execute();
 	$results = array();
@@ -33,17 +33,17 @@ function get_sensor_daily( $sensor_name = 'FP10', $date ) {
 }
 
 /**
- * get_sensors_with_locations( 'FP10', '2013-10-25 16:00' );
+ * get_monitors_with_locations( 'FP10', '2013-10-25 16:00' );
  **/
-function get_sensors_with_locations( $sensor_name, $date ) {
+function get_monitors_with_locations( $monitor_name, $date ) {
 	global $db;
 	$date_prefix = $date . "%";
 	$sql = "SELECT station.station_id, station.latitude, station.longitude, sample.value, sample.time
 	        FROM sample
 		INNER JOIN station ON sample.station_id = station.station_id
-		WHERE sensor_name = :sensor_name AND time LIKE :date;";
+		WHERE monitor_name = :monitor_name AND time LIKE :date;";
 	$stmt = $db->prepare($sql);
-	$stmt->bindParam( ':sensor_name', $sensor_name );
+	$stmt->bindParam( ':monitor_name', $monitor_name );
 	$stmt->bindParam( ':date', $date_prefix );
 	$stmt->execute();
 	$results = array();
@@ -57,9 +57,9 @@ function get_sensors_with_locations( $sensor_name, $date ) {
 	return $results;
 }
 
-function get_sensor_names() {
+function get_monitor_names() {
 	global $db;
-	$sql = "SELECT DISTINCT sensor_name FROM sample;";
+	$sql = "SELECT DISTINCT monitor_name FROM sample;";
 	$stmt = $db->prepare($sql);
 	$stmt->execute();
 	return $stmt->fetchAll(PDO::FETCH_COLUMN, 0);

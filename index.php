@@ -21,12 +21,12 @@ $app->group('/api', function() use ($app) {
 		print_r( json_encode( get_stations() ) );
 	});
 	
-	$app->get('/sensor', function() {
-		print_r( json_encode( get_sensor_names() ) );
+	$app->get('/monitor', function() {
+		print_r( json_encode( get_monitor_names() ) );
 	});
 	
-	$app->get('/sensor/:id', function($id) {
-		print_r( json_encode( get_sensors_with_locations( $id, '2013-11-01' ) ) );
+	$app->get('/monitor/:id', function($id) {
+		print_r( json_encode( get_monitors_with_locations( $id, '2013-11-01 14:00' ) ) );
 	});
 
 });
