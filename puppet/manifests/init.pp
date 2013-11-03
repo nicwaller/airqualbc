@@ -53,6 +53,7 @@ class air {
 		default_vhost => true,
 		port => '80',
 		docroot => '/var/www/air/',
+		directories => [ { path => '/var/www/air', allow_override => ['All'], options => ['Indexes', 'FollowSymLinks'] } ],
 	}
 
 	class { '::mysql::server':
