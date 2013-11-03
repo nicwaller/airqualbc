@@ -10,7 +10,12 @@
 <script>
 var svg, overlay;
 
-function initialize( sensor )
+var map;
+
+var all_markers = [];
+var all_overlay = [];
+
+function initialize()
 {
 	var mapProp = {
 		center:new google.maps.LatLng(53.9000, -122.7667),
@@ -20,11 +25,20 @@ function initialize( sensor )
 		dissipating: false,
 		mapTypeId:google.maps.MapTypeId.TERRAIN
 	};
-	var map=new google.maps.Map(document.getElementById("googleMap"),mapProp);
+	map=new google.maps.Map(document.getElementById("googleMap"),mapProp);
 
 	map.controls[google.maps.ControlPosition.RIGHT_CENTER].push(document.getElementById("legend"));
 	map.controls[google.maps.ControlPosition.RIGHT_TOP].push(document.getElementById("sensor_control"));
-	
+}
+
+function showSensor( sensor ) {
+	while (all_overlay[0]) {
+		all_overlay.pop().setMap(null);
+	}
+	while (all_markers[0]) {
+		all_markers.pop().setMap(null);
+	}
+
 	function goHeatmap( data ) {
 		var heatmapData = [];
 		$.each(data, function(index, v) {
@@ -39,15 +53,16 @@ function initialize( sensor )
 			//maxIntensity: 50.0
 		});
 		heatmap.setMap(map);
+		all_overlay.push(heatmap);
 	}
 
 	function goMarkers( data ) {
 		$.each(data, function(index, v) {
-			new google.maps.Marker({
+			all_markers.push(new google.maps.Marker({
 				position: new google.maps.LatLng(v.latitude, v.longitude),
 				map: map,
 				title: "Station# " + v.station_id + " at time " + v.time + ". "+ sensor +" reading= " + v.value,
-			});
+			}));
 		});	
 	}
 
@@ -88,7 +103,7 @@ function initialize( sensor )
 
 	function goCircles( data ) {
 		$.each(data, function(i, v) {
-			new google.maps.Circle({
+			all_overlay.push(new google.maps.Circle({
 				strokeColor: gradient.colourAt(v.value),
 				strokeOpacity: 0.9,
 				strokeWeight: 2,
@@ -97,7 +112,7 @@ function initialize( sensor )
 				map: map,
 				center: new google.maps.LatLng(v.latitude, v.longitude),
 				radius: 2000
-			});
+			}));
 		});
 	}
 
@@ -109,6 +124,8 @@ function initialize( sensor )
 		.done( goMarkers );
 }
 
+$( document ).ready(initialize);
+
 $.ajax( "api/sensor" )
 	.done(function( msg ) {
 		var options = $("#sensor");
@@ -119,7 +136,7 @@ $.ajax( "api/sensor" )
 		});
 		var handler = function() {
 			var sensor = $( "#sensor option:selected").text();
-			initialize( sensor );
+			showSensor( sensor );
 		};
 		options.change(handler).keypress(handler).ready(handler);
 	});
