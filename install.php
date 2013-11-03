@@ -9,7 +9,7 @@ $db->exec("CREATE DATABASE IF NOT EXISTS $database;
 
 $db->exec("CREATE TABLE IF NOT EXISTS sample (
 	station_id INT,
-	sensor_name VARCHAR(15),
+	monitor_name VARCHAR(15),
 	time DATETIME,
 	value FLOAT,
-	PRIMARY KEY (station_id, sensor_name, time));");
+	PRIMARY KEY (station_id, monitor_name, time));");

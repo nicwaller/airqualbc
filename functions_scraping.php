@@ -73,7 +73,7 @@ function fetch_station_htmldata( $station_id, $date ) {
 	$data['ddlOwner']   = '-1';
 	$data['ddlStation'] = strval( $station_id ); // '107';
 	$data['chkAll']     = 'on'; // should be 1 or something else?
-	// TODO: how to handle checkboxes with variable numbers of sensors?
+	// TODO: how to handle checkboxes with variable numbers of monitors?
 	$data['lstMonitorsn0CheckBox'] = 'on';
 	$data['lstMonitorsn1CheckBox'] = 'on';
 	$data['lstMonitorsn2CheckBox'] = 'on';
@@ -204,13 +204,13 @@ function download_latest_for_station( $station_id ) {
 		//print_r( $results );
 	
 		echo "Writing data into database...\n";	
-		$sql = "INSERT INTO sample (station_id, sensor_name, time, value) VALUES
-			(:station_id, :sensor_name, :time, :value);";
+		$sql = "INSERT INTO sample (station_id, monitor_name, time, value) VALUES
+			(:station_id, :monitor_name, :time, :value);";
 		$stmt = $db->prepare($sql);
-		foreach ($results as $sensor_name => $samples) {
+		foreach ($results as $monitor_name => $samples) {
 			foreach ($samples as $time => $value) {		
 				$stmt->bindParam(':station_id',  $station_id);
-				$stmt->bindParam(':sensor_name', $sensor_name);
+				$stmt->bindParam(':monitor_name', $monitor_name);
 				$stmt->bindParam(':time',        $time);
 				$stmt->bindParam(':value',       $value);
 				$stmt->execute();
