@@ -36,7 +36,33 @@
 # Copyright 2013 Your name here, unless otherwise noted.
 #
 class air {
-	package { 'httpd':
-		ensure => 'installed',
+	class { 'apache':
+		default_vhost => false,
 	}
+	include apache::mod::php
+
+	file { '/var/www/air':
+		ensure => directory,
+	} -> apache::vhost { $::fqdn:
+		default_vhost => true,
+		port => '80',
+		docroot => '/var/www/air/',
+	}
+
+	class { '::mysql::server':
+		root_password => 'air',
+	}
+	class { '::mysql::client': }
+	mysql::db { 'air':
+		user     => 'air',
+		password => 'air',
+		host     => 'localhost',
+		grant    => ['ALL'],
+	}
+
+	php::ini { '/etc/php.ini':
+		display_errors => 'Off',
+	}
+	include php::cli
+	php::module { ['mysql', 'pdo', 'mbstring', 'xml']: }
 }
