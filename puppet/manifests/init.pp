@@ -46,6 +46,9 @@ class air {
 	} -> file { '/var/www/air/config.php':
 		ensure  => 'file',
 		content => template('air/config.php.erb'),
+	} -> file { '/var/www/air/.htaccess':
+		ensure  => 'file',
+		content => template('air/htaccess.erb'),
 	} -> apache::vhost { $::fqdn:
 		default_vhost => true,
 		port => '80',
