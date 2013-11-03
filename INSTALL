@@ -1,0 +1,4 @@
+The installation process is partially automated with bash and Puppet.
+
+# su root
+# source <(curl -s https://gist.github.com/nicwaller/7285802/raw)
