@@ -33,12 +33,6 @@ function initialize()
 }
 
 function showMonitor( monitor, time ) {
-	while (all_overlay[0]) {
-		all_overlay.pop().setMap(null);
-	}
-	while (all_markers[0]) {
-		all_markers.pop().setMap(null);
-	}
 
 	function goHeatmap( data ) {
 		var heatmapData = [];
@@ -58,6 +52,9 @@ function showMonitor( monitor, time ) {
 	}
 
 	function goMarkers( data ) {
+		while (all_markers[0]) {
+			all_markers.pop().setMap(null);
+		}
 		$.each(data, function(index, v) {
 			all_markers.push(new google.maps.Marker({
 				position: new google.maps.LatLng(v.latitude, v.longitude),
@@ -107,6 +104,9 @@ function showMonitor( monitor, time ) {
 			
 
 	function goCircles( data ) {
+		while (all_overlay[0]) {
+			all_overlay.pop().setMap(null);
+		}
 		$.each(data, function(i, v) {
 			all_overlay.push(new google.maps.Circle({
 				strokeColor: gradient.colourAt(v.value),
