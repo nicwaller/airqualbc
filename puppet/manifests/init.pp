@@ -58,16 +58,7 @@ class air {
 		directories => [ { path => '/var/www/air', allow_override => ['All'], options => ['Indexes', 'FollowSymLinks'] } ],
 	}
 
-	class { '::mysql::server':
-		root_password => 'air',
-	}
-	class { '::mysql::client': }
-	mysql::db { 'air':
-		user     => 'air',
-		password => 'air',
-		host     => 'localhost',
-		grant    => ['ALL'],
-	}
+	# TODO FIXME install and configure postgres
 
 	php::ini { '/etc/php.ini':
 		display_errors => 'Off',

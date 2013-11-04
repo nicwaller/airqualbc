@@ -15,14 +15,11 @@ fi
 rsync -pr ~/airqualbc/puppet/ /etc/puppet/modules/air
 echo "node default { include air }" > /etc/puppet/manifests/site.pp
 
-if [ ! -d "/etc/puppet/modules/mysql" ]; then
-  puppet module install puppetlabs/mysql
-fi
 if [ ! -d "/etc/puppet/modules/apache" ]; then
-puppet module install puppetlabs/apache
+  puppet module install puppetlabs/apache
 fi
 if [ ! -d "/etc/puppet/modules/php" ]; then
-puppet module install thias/php
+  puppet module install thias/php
 fi
 puppet agent --test
 
@@ -33,4 +30,16 @@ fi
 chgrp -R apache /var/www/air/rawdata
 chmod -R g+rwx /var/www/air/rawdata
 
-php /var/www/air/install.php
+#CREATE TABLE station (
+#    station_id integer NOT NULL,
+#    station_name character varying(100) NOT NULL,
+#    latitude real,
+#    longitude real
+#);
+#
+#CREATE TABLE sample (
+#    station_id integer NOT NULL,
+#    monitor_name character varying(15) NOT NULL,
+#    "time" timestamp without time zone NOT NULL,
+#    value real NOT NULL
+#);
