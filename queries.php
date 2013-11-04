@@ -56,7 +56,7 @@ function get_monitors_with_locations( $monitor_name, $date = null ) {
 		FROM sample
 		INNER JOIN latest ON sample.station_id = latest.station_id AND sample.monitor_name = latest.monitor_name AND sample.time = latest.maxtime
 		INNER JOIN station ON sample.station_id = station.station_id
-		ORDER BY time asc;";
+		ORDER BY time DESC;";
 	$stmt = $db->prepare($sql);
 	$stmt->bindParam( ':monitor_name', $monitor_name );
 	$stmt->bindParam( ':date', $date );

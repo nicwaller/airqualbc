@@ -34,6 +34,7 @@ $app->group('/api', function() use ($app) {
 
 	$app->get('/monitor/:id/:time', function($id, $time) {
 		$timestamp = date('Y-m-d H:i:s', intval( $time ) );
+		
 		print_r( json_encode( get_monitors_with_locations( $id, $timestamp ) ) );
 	});
 

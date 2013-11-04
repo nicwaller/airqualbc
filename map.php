@@ -29,9 +29,10 @@ function initialize()
 
 	map.controls[google.maps.ControlPosition.RIGHT_CENTER].push(document.getElementById("legend"));
 	map.controls[google.maps.ControlPosition.TOP_CENTER].push(document.getElementById("monitor_control"));
+	map.controls[google.maps.ControlPosition.TOP_CENTER].push(document.getElementById("time_control"));
 }
 
-function showMonitor( monitor ) {
+function showMonitor( monitor, time ) {
 	while (all_overlay[0]) {
 		all_overlay.pop().setMap(null);
 	}
@@ -118,14 +119,19 @@ function showMonitor( monitor ) {
 
 
 	// Download data for this monitor, then add data into the map
-	var now = (new Date()).getTime();
-	$.ajax( "api/monitor/" + monitor + "/" + now)
+	$.ajax( "api/monitor/" + monitor + "/" + time)
 		.done( goCircles )
 //		.done( goHeatmap )
 		.done( goMarkers );
 }
 
 $( document ).ready(initialize);
+
+var getUpdate = function() {
+	var monitor = $( "#monitor option:selected").val();
+	var thetime = $( "#time option:selected").val();
+	showMonitor( monitor, thetime );
+}
 
 $.ajax( "api/monitor" )
 	.done(function( msg ) {
@@ -135,12 +141,21 @@ $.ajax( "api/monitor" )
 				options.append( $("<option />").val(this).text(this) );
 			}
 		});
-		var handler = function() {
-			var monitor = $( "#monitor option:selected").text();
-			showMonitor( monitor );
-		};
-		options.change(handler).keypress(handler).ready(handler);
+		options.change(getUpdate).keypress(getUpdate).ready(getUpdate);
 	});
+
+$( document ).ready(function() {
+	var times = $("#time");
+	var tmo = new Date();
+	tmo.setHours(0,0,0,0); // truncate to midnight, since no current day data is available
+	var diff = -60; // minutes to subtract each loop
+	for (var i=0; i<24; i++) {
+		var epochtime = tmo.getTime() / 1000;
+		times.append( $("<option />").val(epochtime).text(tmo.toISOString()) );
+		tmo = new Date(tmo.getTime() + diff*60000);
+	}
+	times.change(getUpdate).keypress(getUpdate).ready(getUpdate);
+});
 </script>
 </head>
 
@@ -163,6 +178,10 @@ $.ajax( "api/monitor" )
 
 <div id="monitor_control" width="50" height="50">
 	<select name="monitor" id="monitor" style="height: 40px;"></select>
+</div>
+
+<div id="time_control" width="50" height="50">
+	<select name="time" id="time" style="height: 40px;"></select>
 </div>
 
 <div id="googleMap" style="position:absolute;left:0;top:0%;width:100%;height:100%;"></div>
