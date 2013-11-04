@@ -1,55 +1,77 @@
 <!DOCTYPE html>
 <html>
 <head>
-<script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
 <script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
 <script src="http://maps.googleapis.com/maps/api/js?key=AIzaSyB9vnyKt02oej-h9VgkI-NPfDy1IfF9cwI&sensor=false&libraries=visualization"></script>
 <script src="/lib/rainbowvis.js"></script>
 </script>
 
 <script>
-var svg, overlay;
-
 var map;
 
 var all_markers = [];
 var all_overlay = [];
 
+// [date] the point where we start calculating offsets
+// [int]  steps
+// [int]  step_size (in minutes, positive or negative)
+function time_steps(origin, steps, step_size) {
+	var results = [];
+	var time = new Date(origin);
+	for (var i=0; i<steps; i++) {
+		results.push(time);
+		time = new Date(time.getTime() + step_size*60000);
+	}
+	return results;
+}
+
 function initialize()
 {
-	var mapProp = {
-		center:new google.maps.LatLng(53.9000, -122.7667),
+	// Set up the Google Map
+	var ptPrinceGeorge = new google.maps.LatLng(53.9000, -122.7667);
+
+	map = new google.maps.Map(document.getElementById("googleMap"),{
+		center: ptPrinceGeorge,
 		zoom:11,
 		minZoom: 3,
-		overviewMapControl: true,
-		dissipating: false,
 		mapTypeId:google.maps.MapTypeId.TERRAIN
-	};
-	map=new google.maps.Map(document.getElementById("googleMap"),mapProp);
+	});
 
+	// Set up the time menu with hours in the previous day
+	var time_control = $('<select />').attr('id', 'time');
+	tmo = new Date();
+	tmo.setHours(0,0,0,0);
+	$.each( time_steps(tmo, 24, -60), function(i,v) {
+		time_control.append( $('<option />').val(v.getTime()/1000).text(v.toLocaleString()) );
+	});
+	time_control.change(getUpdate).keypress(getUpdate);
+	$('body').append( time_control );
+	map.controls[google.maps.ControlPosition.TOP_CENTER].push( time_control[0] );
+
+	var monitor_control = $('<select />').attr('id', 'monitor');
+	$.ajax( "api/monitor" ).done(function( msg ) {
+		$.each(msg, function(index, value) {
+			var name = value.monitor_name;
+			if ($.inArray(name, ['PM10', 'PM25', 'O3', 'NO2', 'SO2', 'TEMP_MEAN']) != -1) {
+				monitor_control.append( $("<option />").val(name).text(name) );
+			}
+		});
+		monitor_control.change(getUpdate).keypress(getUpdate);
+	});
+	map.controls[google.maps.ControlPosition.TOP_CENTER].push( monitor_control[0] );
+
+	// TODO build the legend programatically based on settings for selected monitor type
 	map.controls[google.maps.ControlPosition.RIGHT_CENTER].push(document.getElementById("legend"));
-	map.controls[google.maps.ControlPosition.TOP_CENTER].push(document.getElementById("monitor_control"));
-	map.controls[google.maps.ControlPosition.TOP_CENTER].push(document.getElementById("time_control"));
+
+	// It's unclear to me why I have to wait a while (1s) before doing the update.
+	// Trying to run getUpdate now returns undefined for selection in monitor_control.
+	// It was working before, when <select> was in the HTML DOM.
+	setTimeout(getUpdate, 500);
+
+	// TODO: a little sun/moon spinner would be super neat.
 }
 
 function showMonitor( monitor, time ) {
-
-	function goHeatmap( data ) {
-		var heatmapData = [];
-		$.each(data, function(index, v) {
-			heatmapData.push({
-				location: new google.maps.LatLng(v.latitude, v.longitude),
-				weight: 1.0,
-			});
-		});
-		var heatmap = new google.maps.visualization.HeatmapLayer({
-			data: heatmapData,
-			radius: 100,
-			//maxIntensity: 50.0
-		});
-		heatmap.setMap(map);
-		all_overlay.push(heatmap);
-	}
 
 	function goMarkers( data ) {
 		while (all_markers[0]) {
@@ -102,16 +124,15 @@ function showMonitor( monitor, time ) {
 			break;
 	}
 			
-
 	function goCircles( data ) {
 		while (all_overlay[0]) {
 			all_overlay.pop().setMap(null);
 		}
 		$.each(data, function(i, v) {
 			all_overlay.push(new google.maps.Circle({
-				strokeColor: gradient.colourAt(v.value),
-				strokeOpacity: 0.9,
-				strokeWeight: 2,
+				strokeColor: '#000000',
+				strokeOpacity: 1.0,
+				strokeWeight: 0.0,
 				fillColor: gradient.colourAt(v.value),
 				fillOpacity: 1.0, // overlapping transparency is counterintuitive
 				map: map,
@@ -121,53 +142,23 @@ function showMonitor( monitor, time ) {
 		});
 	}
 
-
 	// Download data for this monitor, then add data into the map
 	$.ajax( "api/sample/" + monitor + "/" + time)
 		.done( goCircles )
-//		.done( goHeatmap )
 		.done( goMarkers );
 }
 
 $( document ).ready(initialize);
 
-var getUpdate = function() {
+function getUpdate() {
 	var monitor = $( "#monitor option:selected").val();
 	var thetime = $( "#time option:selected").val();
 	showMonitor( monitor, thetime );
 }
 
-$.ajax( "api/monitor" )
-	.done(function( msg ) {
-		var options = $("#monitor");
-		$.each(msg, function(index, value) {
-			var name = value.monitor_name;
-			if ($.inArray(name, ['PM10', 'PM25', 'O3', 'NO2', 'SO2', 'TEMP_MEAN']) != -1) {
-				options.append( $("<option />").val(name).text(name) );
-			}
-		});
-		options.change(getUpdate).keypress(getUpdate).ready(getUpdate);
-	});
-
-$( document ).ready(function() {
-	var times = $("#time");
-	var tmo = new Date();
-	tmo.setHours(0,0,0,0); // truncate to midnight, since no current day data is available
-	var diff = -60; // minutes to subtract each loop
-	for (var i=0; i<24; i++) {
-		var epochtime = tmo.getTime() / 1000;
-		times.append( $("<option />").val(epochtime).text(tmo.toISOString()) );
-		tmo = new Date(tmo.getTime() + diff*60000);
-	}
-	times.change(getUpdate).keypress(getUpdate).ready(getUpdate);
-});
 </script>
 </head>
-
-
 <body>
-
-<div id="test"></div>
 
 <div id="legend" width="50" height="400">
 	<svg xmlns="http://www.w3.org/2000/svg" version="1.1" height="400" width="50">
@@ -179,14 +170,6 @@ $( document ).ready(function() {
 		</linearGradient>
 		<rect x="0" y="0" width="50" height="400" fill="url(#G1)" />
 	</svg>
-</div>
-
-<div id="monitor_control" width="50" height="50">
-	<select name="monitor" id="monitor" style="height: 40px;"></select>
-</div>
-
-<div id="time_control" width="50" height="50">
-	<select name="time" id="time" style="height: 40px;"></select>
 </div>
 
 <div id="googleMap" style="position:absolute;left:0;top:0%;width:100%;height:100%;"></div>
