@@ -118,7 +118,8 @@ function showMonitor( monitor ) {
 
 
 	// Download data for this monitor, then add data into the map
-	$.ajax( "api/monitor/" + monitor )
+	var now = (new Date()).getTime();
+	$.ajax( "api/monitor/" + monitor + "/" + now)
 		.done( goCircles )
 //		.done( goHeatmap )
 		.done( goMarkers );

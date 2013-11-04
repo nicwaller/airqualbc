@@ -29,7 +29,12 @@ $app->group('/api', function() use ($app) {
 	});
 	
 	$app->get('/monitor/:id', function($id) {
-		print_r( json_encode( get_monitors_with_locations( $id, '2013-11-01 14:00:00' ) ) );
+		print_r( json_encode( get_monitors_with_locations( $id ) ) );
+	});
+
+	$app->get('/monitor/:id/:time', function($id, $time) {
+		$timestamp = date('Y-m-d H:i:s', intval( $time ) );
+		print_r( json_encode( get_monitors_with_locations( $id, $timestamp ) ) );
 	});
 
 	$app->get('/sample/by-date/:dt', function($dt) {

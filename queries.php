@@ -35,16 +35,31 @@ function get_monitor_daily( $monitor_name = 'FP10', $date ) {
 /**
  * get_monitors_with_locations( 'FP10', '2013-10-25 16:00' );
  **/
-function get_monitors_with_locations( $monitor_name, $date ) {
+function get_monitors_with_locations( $monitor_name, $date = null ) {
 	global $db;
-	$date_prefix = $date . "%";
-	$sql = "SELECT station.station_id, station.latitude, station.longitude, sample.value, sample.time
-	        FROM sample
+
+	if ($date == null) {
+		$date = date('Y-m-d H:i:s');
+	}
+
+//	$sql = "SELECT station.station_id, station.latitude, station.longitude, sample.value, sample.time
+//	        FROM sample
+//		INNER JOIN station ON sample.station_id = station.station_id
+//		WHERE monitor_name = :monitor_name AND time = :date;";
+
+	$sql = "WITH latest AS (
+			SELECT station_id, monitor_name, MAX(time) as maxtime
+			FROM sample
+			WHERE monitor_name = :monitor_name AND time <= :date
+			GROUP BY station_id, monitor_name)
+		SELECT sample.station_id, sample.monitor_name, sample.time, sample.value, station.latitude, station.longitude
+		FROM sample
+		INNER JOIN latest ON sample.station_id = latest.station_id AND sample.monitor_name = latest.monitor_name AND sample.time = latest.maxtime
 		INNER JOIN station ON sample.station_id = station.station_id
-		WHERE monitor_name = :monitor_name AND time = :date;";
+		ORDER BY time asc;";
 	$stmt = $db->prepare($sql);
 	$stmt->bindParam( ':monitor_name', $monitor_name );
-	$stmt->bindParam( ':date', $date_prefix );
+	$stmt->bindParam( ':date', $date );
 	$stmt->execute();
 	$results = array();
 	while ($row = $stmt->fetch()) {
@@ -52,7 +67,6 @@ function get_monitors_with_locations( $monitor_name, $date ) {
 		$j = 0; do { unset( $row[$j++] ); } while ( isset($row[$j]) );
 
 		$results[] = $row;
-		//echo "{location: new google.maps.LatLng($lat, $lng), weight: $val},";
 	}
 	return $results;
 }
