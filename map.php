@@ -123,7 +123,7 @@ function showMonitor( monitor, time ) {
 
 
 	// Download data for this monitor, then add data into the map
-	$.ajax( "api/monitor/" + monitor + "/" + time)
+	$.ajax( "api/sample/" + monitor + "/" + time)
 		.done( goCircles )
 //		.done( goHeatmap )
 		.done( goMarkers );
@@ -141,8 +141,9 @@ $.ajax( "api/monitor" )
 	.done(function( msg ) {
 		var options = $("#monitor");
 		$.each(msg, function(index, value) {
-			if ($.inArray(value, ['PM10', 'PM25', 'O3', 'NO2', 'SO2', 'TEMP_MEAN']) != -1) {
-				options.append( $("<option />").val(this).text(this) );
+			var name = value.monitor_name;
+			if ($.inArray(name, ['PM10', 'PM25', 'O3', 'NO2', 'SO2', 'TEMP_MEAN']) != -1) {
+				options.append( $("<option />").val(name).text(name) );
 			}
 		});
 		options.change(getUpdate).keypress(getUpdate).ready(getUpdate);
