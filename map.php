@@ -96,6 +96,10 @@ function showMonitor( monitor, time ) {
 			// WHO threshold 20ug/m^3 = 0.007 ppm = 7.0 ppb
 			gradient.setNumberRange(0, 7); // 24 hour mean
 			break;
+		case 'TEMP_MEAN': // temperature, we all know and love
+			gradient.setNumberRange(-40, 40);
+			gradient.setSpectrum('#0000FF', '#FFFFFF', '#00FF00');
+			break;
 		default:
 			gradient.setNumberRange(0, 100);
 			break;
@@ -137,7 +141,7 @@ $.ajax( "api/monitor" )
 	.done(function( msg ) {
 		var options = $("#monitor");
 		$.each(msg, function(index, value) {
-			if ($.inArray(value, ['PM10', 'PM25', 'O3', 'NO2', 'SO2']) != -1) {
+			if ($.inArray(value, ['PM10', 'PM25', 'O3', 'NO2', 'SO2', 'TEMP_MEAN']) != -1) {
 				options.append( $("<option />").val(this).text(this) );
 			}
 		});
